@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mixing Sim</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+		background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
+		color: #eee;
+		font-family: 'Rubik', monospace;
+		padding: 2rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+   #cornerBtn {
+	  position: fixed;
+	  top: 10px;
+	  left: 10px;
+	  padding: 6px 10px;
+	  font-size: 0.8rem;
+	  background-color: #222;
+	  color: white;
+	  border: 1px solid #555;
+	  border-radius: 5px;
+	  cursor: pointer;
+	  z-index: 9999;
+	}
+
+   select, button {
+	  font-family: 'Rubik', monospace;
+	  letter-spacing: 1px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .effects, .ingredients, .log {
+	  margin-top: 1rem;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .effects ul, .log ul {
+	  list-style: none;
+      padding: 0;
+    }
+
+    .effects li, .log li {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 0.5rem;
+      margin-bottom: 0.3rem;
+      border-radius: 3px;
+    }
+
+    .log li {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+	
+	.effect {
+  list-style-type: disc;
+  padding-left: 1.2rem;
+  margin-left: 0.5rem;
+  font-weight: bold;
+  font-family: monospace;
+}
+	
+	@keyframes flashPurple {
+  0% { background-color: #222; }
+  50% { background-color: #a020f0; } /* Lila */
+  100% { background-color: #222; }
+}
+
+button.flash {
+  animation: flashPurple 0.6s ease;
+}
+  
+    .fade-in {
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .glow-krock {
+      box-shadow: 0 0 15px 3px red;
+      transition: box-shadow 0.3s ease;
+    }
+    button:hover {
+      background-color: #333;
+      box-shadow: 0 0 8px rgba(160, 32, 240, 0.3);
+      cursor: pointer;
+    }
+	.footer-tag {
+	  position: fixed;
+	  bottom: 10px;
+	  right: 10px;
+	  color: #666;
+	  font-size: 0.8rem;
+	  opacity: 0.7;
+	  pointer-events: none;
+	  margin-bottom: 15px
+	}
+	.affiliate-tag {
+	  position: fixed;
+	  bottom: 10px;
+	  right: 10px;
+	  color: #666;
+	  font-size: 0.6rem;
+	  opacity: 0.7;
+	  pointer-events: none;
+	  }
+	#introOverlay {
+	  position: fixed;
+	  top: 0; left: 0;
+	  width: 100vw; height: 100vh;
+	  background: rgba(0,0,0,0.85);
+	  color: white;
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  z-index: 9999;
+	}
+	.overlay-content {
+	  max-width: 700px;
+	  text-align: center;
+	  background: #222;
+	  padding: 2rem;
+	  border-radius: 10px;
+	}
+	.tutorial-gif {
+	  width: 100%;
+	  max-width: 700px;
+	  margin: 1rem auto;
+	  display: block;
+	  border-radius: 8px;
+	}
+	
+	
+	#effectList,
+	#logList,
+	h3 {
+	  text-align: center;
+	  margin-left: auto;
+	  margin-right: auto;
+}
+
+  </style>
+</head>
+<body>
+
+	<div id="introOverlay" style="display:none;">
+	<div class="overlay-content">
+		<h2>Welcome to the lab!</h2>
+		<p>Here you can pick and mix different drugs and ingredients to see what effects will emerge.</p>
+		  <img src="https://mishjepixjel.github.io/S-1Mixsim/onboarding.gif" alt="Tutorial GIF" class="tutorial-gif" />
+		<button onclick="closeIntro(event)">I get it!</button>
+	</div>
+</div>
+
+	<button id="cornerBtn" onclick="showIntro()">?</button>
+  <h1>Schedule 1 – Mixing Simulator</h1>
+
+  <div id="status" style="margin-bottom: 1rem; color: #7fffd4; font-weight: bold; height: 1.2rem;"></div>
+  <div>
+    <select id="effectSelect">
+      <option value="">Choose drug</option>
+      <option value="Drug:Meth:70">Meth</option>
+	  <option value="Drug:Cocaine:150">Cocaine</option>
+      <option value="OG Kush:Calming:35">OG Kush</option>
+	  <option value="Sour Diesel:Refreshing:35">Sour Diesel</option>
+	  <option value="Green Crack:Energizing:35">Green Crack</option>
+	  <option value="Grandaddy purple:Sedating:35">Granddaddy purple</option>
+    </select>
+    <button onclick="setInitialEffect()">Choose drug</button>
+    <select id="ingredientSelect">
+      <option value="">Choose ingredient</option>
+    </select>
+    <button onclick="addIngredient(event)">Add ingredient</button>
+    <button onclick="reset()">Clear</button>
+  </div>
+
+	<div id="valueDisplay">💰 Estimate value: $0</div>
+
+
+  <div class="ingredients">
+    <strong>Used ingredients:</strong>
+    <ul id="ingredientList"></ul>
+  </div>
+
+  <div class="effects">
+    <strong>Current effects:</strong>
+    <ul id="effectList"></ul>
+  </div>
+
+  <div class="log">
+    <strong>Log:</strong>
+    <ul id="logList"></ul>
+  </div>
+
+  <script>
+  
+  function showStatus(text, color = "#7fffd4") {
+  const status = document.getElementById("status");
+  status.textContent = text;
+  status.style.color = color;
+}
+  function flashButton(button) {
+  button.classList.add("flash");
+  setTimeout(() => button.classList.remove("flash"), 600);
+}
+//LJUD
+function playIngredientSound() {
+  const sound = document.getElementById("ingredientSound");
+  if (sound) {
+    sound.currentTime = 0;
+	 sound.volume = 0.2
+    sound.play().catch(err => {
+      console.warn("Could not play sound:", err);
+    });
+  }
+}
+
+function playInitialSound() {
+  const sound = document.getElementById("initialSound");
+  if (sound) {
+    sound.currentTime = 0;
+	 sound.volume = 0.2
+    sound.play().catch(err => {
+      console.warn("Could not play sound:", err);
+    });
+  }
+}
+
+function playResetSound() {
+  const sound = document.getElementById("resetSound");
+  if (sound) {
+    sound.currentTime = 0.2;
+	 sound.volume = 0.2
+    sound.play().catch(err => {
+      console.warn("Could not play sound:", err);
+    });
+  }
+}
+
+	const effectColors = {
+	"Anti-Gravity": "#78e2dc",
+	"Athletic": "#4fc3f7",
+	"Balding": "#999999",
+	"Bright-Eyed": "#29b6f6",
+	"Calming": "#a3d5ff",
+	"Calorie-Dense": "#ffb74d",
+	"Cyclopean": "#ce93d8",
+	"Disorienting": "#ef5350",
+	"Electrifying": "#ffd600",
+	"Energizing": "#76ff03",
+	"Euphoric": "#f48fb1",
+	"Explosive": "#f44336",
+	"Focused": "#42a5f5",
+	"Foggy": "#b0bec5",
+	"Gingeritis": "#ff9800",
+	"Glowing": "#ffff8d",
+	"Jennerising": "#ff8eb3",
+	"Laxative": "#bcaaa4",
+	"Lethal": "#b71c1c",
+	"Long Faced": "#b0b5db",
+	"Munchies": "#ffcc80",
+	"Paranoia": "#f06292",
+	"Refreshing": "#81d4fa",
+	"Schizophrenic": "#ec407a",
+	"Sedating": "#b388ff",
+	"Seizure-Inducing": "#ff5252",
+	"Shrinking": "#64b5f6",
+	"Slippery": "#a5d6a7",
+	"Smelly": "#cddc39",
+	"Sneaky": "#b0bec5",
+	"Spicy": "#ef6c00",
+	"Thought-Provoking": "#90caf9",
+	"Toxic": "#ab47bc",
+	"Tropic Thunder": "#ffa726",
+	"Zombifying": "#9e9e9e"
+	};
+	
+	const effectMultipliers = {
+	"Anti-Gravity": 0.54,
+	"Athletic": 0.32,
+	"Balding": 0.30,
+	"Bright-Eyed": 0.40,
+	"Calming": 0.10,
+	"Calorie-Dense": 0.28,
+	"Cyclopean": 0.56,
+	"Disorienting": 0.00,
+	"Electrifying": 0.50,
+	"Energizing": 0.22,
+	"Euphoric": 0.18,
+	"Explosive": 0.00,
+	"Focused": 0.16,
+	"Foggy": 0.36,
+	"Gingeritis": 0.20,
+	"Glowing": 0.48,
+	"Jennerising": 0.42,
+	"Laxative": 0.00,
+	"Lethal": 0.00,
+	"Long Faced": 0.52,
+	"Munchies": 0.12,
+	"Paranoia": 0.00,
+	"Refreshing": 0.14,
+	"Schizophrenic": 0.00,
+	"Sedating": 0.26,
+	"Seizure-Inducing": 0.00,
+	"Shrinking": 0.60,
+	"Slippery": 0.34,
+	"Smelly": 0.00,
+	"Sneaky": 0.24,
+	"Spicy": 0.38,
+	"Thought-Provoking": 0.44,
+	"Toxic": 0.00,
+	"Tropic Thunder": 0.46,
+	"Zombifying": 0.58
+	};
+	
+    const ingredients = {
+      "Cuke": "Energizing",
+      "Banana": "Gingeritis",
+      "Paracetamol": "Sneaky",
+      "Donut": "Calorie-Dense",
+      "Viagra": "Tropic Thunder",
+      "Mouth Wash": "Balding",
+      "Flu Medicine": "Sedating",
+      "Gasoline": "Toxic",
+      "Energy Drink": "Athletic",
+      "Motor Oil": "Slippery",
+      "Mega Bean": "Foggy",
+      "Chili": "Spicy",
+      "Battery": "Bright-Eyed",
+      "Iodine": "Jennerising",
+      "Addy": "Thought-Provoking",
+      "Horse Semen": "Long Faced"
+    };
+
+    const conflicts = [
+	{ "result": "Calming", "ingredient": "Horse Semen", "effectA": "Anti-Gravity" },
+{ "result": "Slippery", "ingredient": "Donut", "effectA": "Anti-Gravity" },
+{ "result": "Tropic Thunder", "ingredient": "Battery", "effectA": "Anti-Gravity" },
+{ "result": "Tropic Thunder", "ingredient": "Chili", "effectA": "Anti-Gravity" },
+{ "result": "Euphoric", "ingredient": "Chili", "effectA": "Athletic" },
+{ "result": "Laxative", "ingredient": "Mega Bean", "effectA": "Athletic" },
+{ "result": "Munchies", "ingredient": "Flu Medicine", "effectA": "Athletic" },
+{ "result": "Sneaky", "ingredient": "Viagor", "effectA": "Athletic" },
+{ "result": "Sneaky", "ingredient": "Donut", "effectA": "Balding" },
+{ "result": "Anti-Gravity", "ingredient": "Mouth Wash", "effectA": "Calming" },
+{ "result": "Bright-Eyed", "ingredient": "Flu Medicine", "effectA": "Calming" },
+{ "result": "Glowing", "ingredient": "Mega Bean", "effectA": "Calming" },
+{ "result": "Sedating", "ingredient": "Iodine", "effectA": "Calming" },
+{ "result": "Slippery", "ingredient": "Paracetamol", "effectA": "Calming" },
+{ "result": "Sneaky", "ingredient": "Banana", "effectA": "Calming" },
+{ "result": "Gingeritis", "ingredient": "Iodine", "effectA": "Calorie-Dense" },
+{ "result": "Sneaky", "ingredient": "Mouth Wash", "effectA": "Calorie-Dense" },
+{ "result": "Explosive", "ingredient": "Donut", "effectA": "Calorie-Dense" },
+{ "result": "Foggy", "ingredient": "Flu Medicine", "effectA": "Cyclopean" },
+{ "result": "Glowing", "ingredient": "Battery", "effectA": "Cyclopean" },
+{ "result": "Thought-Provoking", "ingredient": "Banana", "effectA": "Cyclopean" },
+{ "result": "Electrifying", "ingredient": "Energy Drink", "effectA": "Disorienting" },
+{ "result": "Focused", "ingredient": "Banana", "effectA": "Disorienting" },
+{ "result": "Glowing", "ingredient": "Gasoline", "effectA": "Disorienting" },
+{ "result": "Toxic", "ingredient": "Viagor", "effectA": "Disorienting" },
+{ "result": "Athletic", "ingredient": "Paracetamol", "effectA": "Electrifying" },
+{ "result": "Disorienting", "ingredient": "Gasoline", "effectA": "Electrifying" },
+{ "result": "Euphoric", "ingredient": "Battery", "effectA": "Electrifying" },
+{ "result": "Euphoric", "ingredient": "Gasoline", "effectA": "Energizing" },
+{ "result": "Munchies", "ingredient": "Motor Oil", "effectA": "Energizing" },
+{ "result": "Schizophrenic", "ingredient": "Motor Oil", "effectA": "Energizing" },
+{ "result": "Spicy", "ingredient": "Gasoline", "effectA": "Energizing" },
+{ "result": "Thought-Provoking", "ingredient": "Banana", "effectA": "Energizing" },
+{ "result": "Paranoia", "ingredient": "Paracetamol", "effectA": "Energizing" },
+{ "result": "Balding", "ingredient": "Paracetamol", "effectA": "Energizing" },
+{ "result": "Cyclopean", "ingredient": "Mega Bean", "effectA": "Energizing" },
+{ "result": "Bright-Eyed", "ingredient": "Viagor", "effectA": "Euphoric" },
+{ "result": "Energizing", "ingredient": "Energy Drink", "effectA": "Euphoric" },
+{ "result": "Laxative", "ingredient": "Cuke", "effectA": "Euphoric" },
+{ "result": "Sedating", "ingredient": "Motor Oil", "effectA": "Euphoric" },
+{ "result": "Seizure-Inducing", "ingredient": "Iodine", "effectA": "Euphoric" },
+{ "result": "Toxic", "ingredient": "Flu Medicine", "effectA": "Euphoric" },
+{ "result": "Spicy", "ingredient": "Gasoline", "effectA": "Euphoric" },
+{ "result": "Zombifying", "ingredient": "Battery", "effectA": "Euphoric" },
+{ "result": "Euphoric", "ingredient": "Addy", "effectA": "Explosive" },
+{ "result": "Sedating", "ingredient": "Mouth Wash", "effectA": "Explosive" },
+{ "result": "Calming", "ingredient": "Flu Medicine", "effectA": "Focused" },
+{ "result": "Disorienting", "ingredient": "Mega Bean", "effectA": "Focused" },
+{ "result": "Euphoric", "ingredient": "Donut", "effectA": "Focused" },
+{ "result": "Gingeritis", "ingredient": "Paracetamol", "effectA": "Focused" },
+{ "result": "Jennerising", "ingredient": "Mouth Wash", "effectA": "Focused" },
+{ "result": "Seizure-Inducing", "ingredient": "Banana", "effectA": "Focused" },
+{ "result": "Shrinking", "ingredient": "Energy Drink", "effectA": "Focused" },
+{ "result": "Calming", "ingredient": "Paracetamol", "effectA": "Foggy" },
+{ "result": "Cyclopean", "ingredient": "Cuke", "effectA": "Foggy" },
+{ "result": "Energizing", "ingredient": "Addy", "effectA": "Foggy" },
+{ "result": "Laxative", "ingredient": "Energy Drink", "effectA": "Foggy" },
+{ "result": "Paranoia", "ingredient": "Iodine", "effectA": "Foggy" },
+{ "result": "Toxic", "ingredient": "Motor Oil", "effectA": "Foggy" },
+{ "result": "Refreshing", "ingredient": "Horse Semen", "effectA": "Gingeritis" },
+{ "result": "Smelly", "ingredient": "Gasoline", "effectA": "Gingeritis" },
+{ "result": "Thought-Provoking", "ingredient": "Cuke", "effectA": "Gingeritis" },
+{ "result": "Disorienting", "ingredient": "Energy Drink", "effectA": "Glowing" },
+{ "result": "Refreshing", "ingredient": "Addy", "effectA": "Glowing" },
+{ "result": "Toxic", "ingredient": "Paracetamol", "effectA": "Glowing" },
+{ "result": "Gingeritis", "ingredient": "Donut", "effectA": "Jennerising" },
+{ "result": "Paranoia", "ingredient": "Mega Bean", "effectA": "Jennerising" },
+{ "result": "Sneaky", "ingredient": "Gasoline", "effectA": "Jennerising" },
+{ "result": "Calming", "ingredient": "Viagor", "effectA": "Laxative" },
+{ "result": "Calorie-Dense", "ingredient": "Battery", "effectA": "Laxative" },
+{ "result": "Euphoric", "ingredient": "Flu Medicine", "effectA": "Laxative" },
+{ "result": "Foggy", "ingredient": "Gasoline", "effectA": "Laxative" },
+{ "result": "Long Faced", "ingredient": "Chili", "effectA": "Laxative" },
+{ "result": "Electrifying", "ingredient": "Addy", "effectA": "Long Faced" },
+{ "result": "Refreshing", "ingredient": "Banana", "effectA": "Long Faced" },
+{ "result": "Refreshing", "ingredient": "Flu Medicine", "effectA": "Long Faced" },
+{ "result": "Anti-Gravity", "ingredient": "Paracetamol", "effectA": "Munchies" },
+{ "result": "Athletic", "ingredient": "Cuke", "effectA": "Munchies" },
+{ "result": "Sedating", "ingredient": "Gasoline", "effectA": "Munchies" },
+{ "result": "Slippery", "ingredient": "Flu Medicine", "effectA": "Munchies" },
+{ "result": "Toxic", "ingredient": "Chili", "effectA": "Munchies" },
+{ "result": "Schizophrenic", "ingredient": "Motor Oil", "effectA": "Munchies" },
+{ "result": "Anti-Gravity", "ingredient": "Motor Oil", "effectA": "Paranoia" },
+{ "result": "Balding", "ingredient": "Paracetamol", "effectA": "Paranoia" },
+{ "result": "Calming", "ingredient": "Gasoline", "effectA": "Paranoia" },
+{ "result": "Jennerising", "ingredient": "Banana", "effectA": "Paranoia" },
+{ "result": "Thought-Provoking", "ingredient": "Iodine", "effectA": "Refreshing" },
+{ "result": "Balding", "ingredient": "Energy Drink", "effectA": "Schizophrenic" },
+{ "result": "Gingeritis", "ingredient": "Addy", "effectA": "Sedating" },
+{ "result": "Munchies", "ingredient": "Energy Drink", "effectA": "Sedating" },
+{ "result": "Focused", "ingredient": "Mega Bean", "effectA": "Seizure-Inducing" },
+{ "result": "Electrifying", "ingredient": "Mega Bean", "effectA": "Shrinking" },
+{ "result": "Energizing", "ingredient": "Donut", "effectA": "Shrinking" },
+{ "result": "Focused", "ingredient": "Gasoline", "effectA": "Shrinking" },
+{ "result": "Gingeritis", "ingredient": "Viagor", "effectA": "Shrinking" },
+{ "result": "Munchies", "ingredient": "Battery", "effectA": "Shrinking" },
+{ "result": "Paranoia", "ingredient": "Flu Medicine", "effectA": "Shrinking" },
+{ "result": "Refreshing", "ingredient": "Chili", "effectA": "Shrinking" },
+{ "result": "Munchies", "ingredient": "Cuke", "effectA": "Slippery" },
+{ "result": "Toxic", "ingredient": "Mega Bean", "effectA": "Slippery" },
+{ "result": "Athletic", "ingredient": "Cuke", "effectA": "Slippery" },
+{ "result": "Anti-Gravity", "ingredient": "Banana", "effectA": "Smelly" },
+{ "result": "Bright-Eyed", "ingredient": "Chili", "effectA": "Sneaky" },
+{ "result": "Calming", "ingredient": "Mega Bean", "effectA": "Sneaky" },
+{ "result": "Paranoia", "ingredient": "Cuke", "effectA": "Sneaky" },
+{ "result": "Tropic Thunder", "ingredient": "Gasoline", "effectA": "Sneaky" },
+{ "result": "Bright-Eyed", "ingredient": "Paracetamol", "effectA": "Spicy" },
+{ "result": "Euphoric", "ingredient": "Energy Drink", "effectA": "Spicy" },
+{ "result": "Cyclopean", "ingredient": "Mega Bean", "effectA": "Thought-Provoking" },
+{ "result": "Electrifying", "ingredient": "Horse Semen", "effectA": "Thought-Provoking" },
+{ "result": "Energizing", "ingredient": "Mega Bean", "effectA": "Thought-Provoking" },
+{ "result": "Gingeritis", "ingredient": "Flu Medicine", "effectA": "Thought-Provoking" },
+{ "result": "Euphoric", "ingredient": "Cuke", "effectA": "Toxic" },
+{ "result": "Smelly", "ingredient": "Banana", "effectA": "Toxic" },
+{ "result": "Sneaky", "ingredient": "Iodine", "effectA": "Toxic" },
+{ "result": "Tropic Thunder", "ingredient": "Paracetamol", "effectA": "Toxic" },
+{ "result": "Sneaky", "ingredient": "Energy Drink", "effectA": "Tropic Thunder" },
+    ];
+	
+
+    let initialEffect = null;
+    const selectedIngredients = [];
+    const currentEffects = [];
+    const logs = [];
+	let currentBasePrice = 0;
+
+
+
+    const selectEffect = document.getElementById("effectSelect");
+    const selectIngredient = document.getElementById("ingredientSelect");
+    const ingredientList = document.getElementById("ingredientList");
+    const effectList = document.getElementById("effectList");
+    const logList = document.getElementById("logList");
+
+    // Lägg till ingredienser i dropdown
+    Object.keys(ingredients).forEach(name => {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      selectIngredient.appendChild(option);
+    });
+
+    function setInitialEffect() {
+ const button = document.querySelector('button[onclick="setInitialEffect()"]');
+  if (button.disabled) {
+    showStatus("Drug is already chosen!", "orange");
+    return;
+  }
+
+  flashButton(event.target);
+  playInitialSound();
+  const effect = selectEffect.value;
+
+  if (effect) {
+    if (effect.startsWith("Drug:")) {
+      const drugName = effect.split(":")[1];
+      logs.push(`💊 Drug chosen: "${drugName}"`);
+      showStatus(`Drug: ${drugName}`);
+    } else if (effect !== "None") {
+      initialEffect = effect;
+      if (!currentEffects.includes(effect)) {
+        const weedEffect = effect.split(":")[1];
+		currentEffects.push(weedEffect);
+		const weedName = effect.split(":")[0];
+        logs.push(`🌿 Weed chosen: "${weedName}"`);
+        updateEffects();
+        showStatus(`Weed: ${weedName}`);
+      }
+    }
+  } else {
+    showStatus("No drug chosen", "orange");
+  }
+	currentBasePrice = parseFloat(effect.split(":")[2]) || 0;
+  button.disabled = true;
+}
+
+  playInitialSound();
+  const effect = selectEffect.value;
+  if (effect && effect !== "None") {
+    initialEffect = effect;
+    if (!currentEffects.includes(effect)) {
+      currentEffects.push(effect);
+      logs.push(`➕ Rooteffect: "${effect}"`);
+      updateEffects();
+      showStatus(`Grundeffekt: ${effect}`);
+    }
+  } else {
+    showStatus("No drug chosen", "orange");
+  
+  }
+ 
+
+    function addIngredient(event) {
+  playIngredientSound();
+  flashButton(event.target);
+  const name = selectIngredient.value;
+
+  if (!name) {
+    showStatus("No ingredient chosen", "orange");
+    return;
+  }
+
+  selectedIngredients.push(name);
+  ingredientList.innerHTML += `<li>${name}</li>`;
+
+  const newEffect = ingredients[name];
+
+if (!currentEffects.includes(newEffect)) {
+  logs.push(`➕ ${name} adds "${newEffect}"`);
+}
+
+  applyConflicts(name, newEffect);
+  updateEffects();
+  showStatus(`Ingredient: ${name}`);
+}
+
+
+		function applyConflicts(ingredientName, newEffect) {
+  let conflictFound = false;
+  const effectsToRemove = [];
+  const effectsToAdd = [];
+  const usedEffects = new Set(); // 🔐 ny: skyddar mot dubbelkrock
+
+  currentEffects.forEach(current => {
+    if (usedEffects.has(current)) return; // hoppa över om redan använts
+
+    const conflict = conflicts.find(c =>
+      c.effectA === current && c.ingredient === ingredientName
+    );
+
+    if (conflict) {
+      logs.push(`⚠️ Collision! "${conflict.effectA}" and ${ingredientName} makes "${conflict.result}"`);
+      effectsToRemove.push(conflict.effectA);
+      usedEffects.add(conflict.effectA); // markera som använd
+
+      if (conflict.result && !currentEffects.includes(conflict.result)) {
+        effectsToAdd.push(conflict.result);
+      }
+
+      conflictFound = true;
+    }
+  });
+
+  effectsToRemove.forEach(effect => {
+    const index = currentEffects.indexOf(effect);
+    if (index !== -1) currentEffects.splice(index, 1);
+  });
+
+  effectsToAdd.forEach(effect => {
+    currentEffects.push(effect);
+  });
+
+		if (!currentEffects.includes(newEffect)) {
+	currentEffects.push(newEffect);
+	}
+}
+
+	
+	
+
+    function updateEffects() {
+	  effectList.innerHTML = currentEffects.map(e => {
+	const color = effectColors[e] || "#ccc"; // fallback-färg om ej definierad
+	return `<li class="fade-in" style="color: ${color}">• ${e}</li>`;
+	}).join("");
+      logList.innerHTML = logs.map(e => `<li class="fade-in">${e}</li>`).join("");
+	  document.getElementById("valueDisplay").textContent = `💰 Estimate value: $${calculateFinalValue().toFixed(0)}`;
+
+    }
+
+	
+function calculateTotalStrength() {
+  let total = 0;
+  currentEffects.forEach(effect => {
+    const multiplier = effectMultipliers[effect];
+    if (multiplier) total += multiplier;
+  });
+  return total;
+}
+
+function calculateFinalValue() {
+  console.log("▶️ Beräknar slutvärde...");
+
+  const strength = calculateTotalStrength();
+  console.log("💪 Effektstyrka:", strength);
+
+  console.log("💰 Baspris:", currentBasePrice);
+
+  const finalPrice = currentBasePrice * (1 + strength);
+  console.log("🧮 Slutligt värde:", finalPrice);
+
+  return finalPrice;
+}
+
+
+    function reset() {
+  flashButton(event.target);
+  playResetSound();
+  initialEffect = null;
+  selectedIngredients.length = 0;
+  currentEffects.length = 0;
+  logs.length = 0;
+  ingredientList.innerHTML = "";
+  effectList.innerHTML = "";
+  logList.innerHTML = "";
+  selectEffect.selectedIndex = 0;
+  selectIngredient.selectedIndex = 0;
+  strength = 0;
+  document.getElementById("valueDisplay").textContent = `💰 Estimate value: $0`;
+  showStatus("Reset", "red");
+  document.querySelector('button[onclick="setInitialEffect()"]').disabled = false;
+}
+
+function showIntroIfFirstTime() {
+  const seen = localStorage.getItem("seenIntro");
+  if (!seen) {
+    document.getElementById("introOverlay").style.display = "flex";
+  }
+}
+
+function showIntro() {
+	document.getElementById("introOverlay").style.display = "flex";
+	}
+function closeIntro() {
+  localStorage.setItem("seenIntro", "true");
+  document.getElementById("introOverlay").style.display = "none";
+}
+
+window.onload = showIntroIfFirstTime;
+
+
+  </script>
+  <audio id="initialSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="ingredientSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <audio id="resetSound" src="https://mishjepixjel.github.io/S-1Mixer/swooshreset.mp3"></audio>
+  <div class="footer-tag">v1 – by Mishje & ChatGPT</div>
+  <div class="affiliate-tag">Not affiliated with TVGS.</div>
+</body>
+</html>
